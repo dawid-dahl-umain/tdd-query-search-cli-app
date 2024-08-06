@@ -1,18 +1,26 @@
-import { Argv } from 'yargs'
+import { ArgumentsCamelCase, Argv } from 'yargs'
 import { logger } from '../logger'
 import { bold, green } from 'picocolors'
 
-interface GreetingArgv {}
+interface GreetingArgv {
+  age?: number
+}
 
 export const command = 'greeting'
 export const describe = 'Displays interactive prompts to demonstrate user input handling.'
 export const aliases = ['g']
 
-export function builder(yargs: Argv<GreetingArgv>): Argv {
-  return yargs
+export function builder(yargs: Argv<GreetingArgv>): Argv<GreetingArgv> {
+  return yargs.option('age', {
+    type: 'number',
+    description: 'Your age',
+    alias: 'a',
+  })
 }
 
-export async function handler() {
+export async function handler(argv: ArgumentsCamelCase<GreetingArgv>) {
+  const age: GreetingArgv['age'] = argv?.age ?? undefined
+
   const username = await logger.prompt('What is your name?', {
     type: 'text',
   })
@@ -32,5 +40,6 @@ export async function handler() {
       },
     ],
   })
-  logger.log(`${green(bold(username))} ${mood}, Ciao!`)
+
+  logger.log(`${green(bold(username))} ${mood}, Ciao! ${age ? `Your age is: ${age}.` : ''}`)
 }
