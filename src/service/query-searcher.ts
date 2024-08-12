@@ -1,6 +1,6 @@
 import { IFileReader } from "./file-reader"
 
-type QuerySearcherMatchTuple = [number, string]
+export type QuerySearcherMatchTuple = [number, string]
 
 export class QuerySearcherMatch {
     static create(
@@ -18,6 +18,12 @@ export class QuerySearcher {
         this.fileReader = fileReader
     }
 
+    /**
+     *
+     * @param query The query to search for.
+     * @param filePath The path to the file to search in. Query Searcher will attempt to resolve the path and supply the content to the search function.
+     * @returns An array of tuples containing the line number and the line content.
+     */
     public async search(
         query: string,
         filePath: string

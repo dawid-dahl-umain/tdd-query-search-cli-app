@@ -1,6 +1,9 @@
 import { ArgumentsCamelCase, Argv } from "yargs"
 import { logger } from "../logger"
-import { QuerySearcher } from "../service/query-searcher"
+import {
+    QuerySearcher,
+    QuerySearcherMatchTuple
+} from "../service/query-searcher"
 import { FileReader } from "../service/file-reader"
 
 export interface QuerySearchArgv {
@@ -11,6 +14,9 @@ export interface QuerySearchArgv {
 export const command = "query-search"
 export const describe = "Query search in a file."
 export const aliases = ["q"]
+
+const isNoMatch = (result: QuerySearcherMatchTuple[]): boolean =>
+    result.length === 1 && result[0] !== undefined && result[0][0] === 0
 
 export function builder(yargs: Argv<QuerySearchArgv>): Argv<QuerySearchArgv> {
     return yargs
@@ -27,19 +33,34 @@ export function builder(yargs: Argv<QuerySearchArgv>): Argv<QuerySearchArgv> {
 }
 
 export async function handler(argv: ArgumentsCamelCase<QuerySearchArgv>) {
-    const { query, filePath } = argv
+    try {
+        const { query, filePath } = argv
 
-    if (!query || !filePath) {
-        logger.log("Both query and filePath are required.")
+        if (!query || !filePath) {
+            logger.log("Both query and filePath are required.")
+
+            return
+        }
+
+        const querySearcher = new QuerySearcher(new FileReader())
+
+        const result = await querySearcher.search(query, filePath)
+
+        if (isNoMatch(result)) {
+            logger.log("No matches")
+
+            return
+        }
+
+        logger.log(
+            `${result.map(querySearchMatch => `${querySearchMatch[0]}: ${querySearchMatch[1]}`).join("\n")}`
+        )
+    } catch (error) {
+        const errorMessage =
+            error instanceof Error ? error.message : "An error occurred."
+
+        logger.error(errorMessage)
 
         return
     }
-
-    const querySearcher = new QuerySearcher(new FileReader())
-
-    const result = await querySearcher.search(query, filePath)
-
-    logger.log(
-        `${result.map(querySearchMatch => `${querySearchMatch[0]}: ${querySearchMatch[1]}`).join("\n")}`
-    )
 }

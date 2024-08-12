@@ -1,5 +1,6 @@
 import { IFileReader } from "src/service/file-reader"
 import { QuerySearcher, QuerySearcherMatch } from "./query-searcher"
+import { FileNotFoundError, GenericFileError } from "./file-reader.error"
 
 const fileReaderMockFactory = (lines: string = ""): IFileReader => ({
     readToString: jest.fn().mockResolvedValue(lines)
@@ -116,6 +117,40 @@ describe("QuerySearcher", () => {
         expect(fileReaderMockReadMethodSpy).toHaveBeenCalledTimes(1)
         await expect(fileReaderMock.readToString(filePath)).resolves.toBe(
             content
+        )
+    })
+
+    it("should throw a FileNotFoundError when file is not found", async () => {
+        const query = "something"
+        const filePath = "/invalid/path"
+
+        const fileReaderMock = {
+            readToString: jest
+                .fn()
+                .mockRejectedValue(new FileNotFoundError("File not found"))
+        }
+
+        const querySearcher = new QuerySearcher(fileReaderMock)
+
+        await expect(querySearcher.search(query, filePath)).rejects.toThrow(
+            FileNotFoundError
+        )
+    })
+
+    it("should throw a GenericFileError when a general error occurs", async () => {
+        const query = "something"
+        const filePath = "/invalid/path"
+
+        const fileReaderMock = {
+            readToString: jest
+                .fn()
+                .mockRejectedValue(new GenericFileError("Some error"))
+        }
+
+        const querySearcher = new QuerySearcher(fileReaderMock)
+
+        await expect(querySearcher.search(query, filePath)).rejects.toThrow(
+            GenericFileError
         )
     })
 })

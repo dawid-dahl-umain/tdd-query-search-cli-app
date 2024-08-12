@@ -1,5 +1,6 @@
 import { promises as fsPromises } from "fs"
 import { resolve } from "path"
+import { FileNotFoundError, GenericFileError } from "./file-reader.error"
 
 export interface IFileReader extends IFileReaderRead {}
 
@@ -12,15 +13,18 @@ export class FileReader implements IFileReader {
         try {
             const absolutePath = resolve(filePath)
 
-            const data = await fsPromises.readFile(absolutePath, {
+            return await fsPromises.readFile(absolutePath, {
                 encoding: "utf8"
             })
-
-            return data
         } catch (error) {
-            console.error("Error reading file:", error)
-
-            return ""
+            if (
+                error instanceof Error &&
+                error.message.toLowerCase().includes("no such file")
+            ) {
+                throw new FileNotFoundError(`File not found: ${filePath}`)
+            } else {
+                throw new GenericFileError(`Error reading file: ${filePath}`)
+            }
         }
     }
 }
