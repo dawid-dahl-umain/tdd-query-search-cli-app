@@ -1,4 +1,5 @@
 import { ArgumentsCamelCase, Argv } from "yargs"
+import { promises as fsPromises } from "fs"
 import { logger } from "../logger"
 import {
     QuerySearcher,
@@ -42,7 +43,7 @@ export async function handler(argv: ArgumentsCamelCase<QuerySearchArgv>) {
             return
         }
 
-        const querySearcher = new QuerySearcher(new FileReader())
+        const querySearcher = new QuerySearcher(new FileReader(fsPromises))
 
         const result = await querySearcher.search(query, filePath)
 

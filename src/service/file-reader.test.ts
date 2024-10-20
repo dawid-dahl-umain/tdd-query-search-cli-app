@@ -6,7 +6,7 @@ describe("FileReader", () => {
     let fileReader: FileReader
 
     beforeEach(() => {
-        fileReader = new FileReader()
+        fileReader = new FileReader(fsPromises)
     })
 
     afterEach(() => {
