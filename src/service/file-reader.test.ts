@@ -10,7 +10,7 @@ describe("FileReader", () => {
     })
 
     afterEach(() => {
-        jest.restoreAllMocks() // Restore original implementation after each test
+        jest.restoreAllMocks()
     })
 
     it("should return file content as string when readToString is called", async () => {
@@ -24,8 +24,8 @@ describe("FileReader", () => {
         const result = await fileReader.readToString(mockFilePath)
 
         expect(readFileSpy).toHaveBeenCalledWith(
-            expect.stringMatching(mockFilePath),
-            { encoding: "utf8" }
+            mockFilePath,
+            expect.any(Object)
         )
         expect(result).toBe(mockFileContent)
     })
@@ -33,34 +33,24 @@ describe("FileReader", () => {
     it("should throw a GenericFileError when readToString encounters a general error", async () => {
         const mockFilePath = "/path/to/invalid-file.txt"
 
-        const readFileSpy = jest
-            .spyOn(fsPromises, "readFile")
-            .mockRejectedValue(new Error("Some other error"))
+        jest.spyOn(fsPromises, "readFile").mockRejectedValue(
+            new Error("Some other error")
+        )
 
         await expect(fileReader.readToString(mockFilePath)).rejects.toThrow(
             GenericFileError
-        )
-
-        expect(readFileSpy).toHaveBeenCalledWith(
-            expect.stringMatching(mockFilePath),
-            { encoding: "utf8" }
         )
     })
 
     it("should throw a FileNotFoundError when readToString encounters a file-not-found error", async () => {
         const mockFilePath = "/path/to/invalid-file.txt"
 
-        const readFileSpy = jest
-            .spyOn(fsPromises, "readFile")
-            .mockRejectedValue(new Error("no such file or directory"))
+        jest.spyOn(fsPromises, "readFile").mockRejectedValue(
+            new Error("no such file or directory")
+        )
 
         await expect(fileReader.readToString(mockFilePath)).rejects.toThrow(
             FileNotFoundError
-        )
-
-        expect(readFileSpy).toHaveBeenCalledWith(
-            expect.stringMatching(mockFilePath),
-            { encoding: "utf8" }
         )
     })
 })

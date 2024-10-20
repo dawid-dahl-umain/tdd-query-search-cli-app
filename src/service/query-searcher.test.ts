@@ -207,6 +207,6 @@ describe("QuerySearcherMatch", () => {
             undefined as unknown as string
         )
 
-        expect(result).toStrictEqual([undefined, undefined])
+        expect(result).toStrictEqual([0, undefined])
     })
 })

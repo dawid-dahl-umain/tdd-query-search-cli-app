@@ -7,7 +7,7 @@ export class QuerySearcherMatch {
         lineNumber: number,
         lineContent: string
     ): QuerySearcherMatchTuple {
-        return [lineNumber, lineContent]
+        return [lineNumber ?? 0, lineContent]
     }
 }
 
