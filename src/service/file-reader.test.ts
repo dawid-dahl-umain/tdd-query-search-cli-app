@@ -14,6 +14,7 @@ describe("FileReader", () => {
     })
 
     it("should return file content as string when readToString is called", async () => {
+        // Arrange
         const mockFilePath = "/path/to/file.txt"
         const mockFileContent = "file content"
 
@@ -21,8 +22,10 @@ describe("FileReader", () => {
             .spyOn(fsPromises, "readFile")
             .mockResolvedValue(mockFileContent)
 
+        // Act
         const result = await fileReader.readToString(mockFilePath)
 
+        // Assert
         expect(readFileSpy).toHaveBeenCalledWith(
             mockFilePath,
             expect.any(Object)
@@ -31,24 +34,28 @@ describe("FileReader", () => {
     })
 
     it("should throw a GenericFileError when readToString encounters a general error", async () => {
+        // Arrange
         const mockFilePath = "/path/to/invalid-file.txt"
 
         jest.spyOn(fsPromises, "readFile").mockRejectedValue(
             new Error("Some other error")
         )
 
+        // Act & Assert
         await expect(fileReader.readToString(mockFilePath)).rejects.toThrow(
             GenericFileError
         )
     })
 
     it("should throw a FileNotFoundError when readToString encounters a file-not-found error", async () => {
+        // Arrange
         const mockFilePath = "/path/to/invalid-file.txt"
 
         jest.spyOn(fsPromises, "readFile").mockRejectedValue(
             new Error("no such file or directory")
         )
 
+        // Act & Assert
         await expect(fileReader.readToString(mockFilePath)).rejects.toThrow(
             FileNotFoundError
         )
