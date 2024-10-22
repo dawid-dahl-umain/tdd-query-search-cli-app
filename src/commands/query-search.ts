@@ -38,7 +38,7 @@ export async function handler(argv: ArgumentsCamelCase<QuerySearchArgv>) {
         const { query, filePath } = argv
 
         if (!query || !filePath) {
-            logger.log("Both query and filePath are required.")
+            logger.error("Both query and filePath are required.")
 
             return
         }

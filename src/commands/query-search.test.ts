@@ -67,7 +67,7 @@ describe("QuerySearch CLI", () => {
             query: "happiness"
         } as ArgumentsCamelCase<QuerySearchArgv>)
 
-        expect(loggerSpy).toHaveBeenCalledWith(
+        expect(errorLoggerSpy).toHaveBeenCalledWith(
             "Both query and filePath are required."
         )
     })
@@ -77,7 +77,7 @@ describe("QuerySearch CLI", () => {
             query: "happiness"
         } as ArgumentsCamelCase<QuerySearchArgv>)
 
-        expect(loggerSpy).toHaveBeenCalledWith(
+        expect(errorLoggerSpy).toHaveBeenCalledWith(
             "Both query and filePath are required."
         )
     })
