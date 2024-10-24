@@ -1,35 +1,19 @@
-import { IFileReader } from "src/service/file-reader"
 import { QuerySearcher, QuerySearcherMatch } from "./query-searcher"
-import { FileNotFoundError, GenericFileError } from "./file-reader.error"
-
-const fileReaderMockFactory = (lines: string = ""): IFileReader => ({
-    readToString: jest.fn().mockResolvedValue(lines)
-})
-
-const querySearchUnconfig =
-    (
-        fileReaderMockFactory: (content?: string, lines?: string) => IFileReader
-    ) =>
-    async (query: string, content: string) => {
-        const fileReaderMock = fileReaderMockFactory(content)
-
-        const querySearcher = new QuerySearcher(fileReaderMock)
-
-        const result = await querySearcher.search(query, content)
-
-        return result
-    }
-
-const querySearch = querySearchUnconfig(fileReaderMockFactory)
 
 describe("QuerySearcher", () => {
+    let querySearcher: QuerySearcher
+
+    beforeEach(() => {
+        querySearcher = new QuerySearcher()
+    })
+
     it("should return single line when matched with single line", async () => {
         // Arrange
         const query = "TDD"
         const content = "TDD Rocks!"
 
         // Act
-        const result = await querySearch(query, content)
+        const result = await querySearcher.search(query, content)
 
         // Assert
         expect(result).toStrictEqual([
@@ -43,7 +27,7 @@ describe("QuerySearcher", () => {
         const content = "TDD Rocks!"
 
         // Act
-        const result = await querySearch(query, content)
+        const result = await querySearcher.search(query, content)
 
         // Assert
         expect(result).toStrictEqual([
@@ -57,25 +41,41 @@ describe("QuerySearcher", () => {
         const content = "TDD rocks!"
 
         // Act
-        const result = await querySearch(query, content)
+        const result = await querySearcher.search(query, content)
 
         // Assert
         expect(result).toStrictEqual([QuerySearcherMatch.create(0, "")])
     })
 
-    it("should return single line when matched with second line", async () => {
-        // Arrange
-        const query = "TDD"
-        const content = "Life is great\nTDD rocks"
+    it.each([
+        {
+            content: "Life is great\nTDD rocks",
+            expectedLineNumber: 2,
+            expectedLineContent: "TDD rocks"
+        },
+        {
+            content: "TDD rocks\nLife is great",
+            expectedLineNumber: 1,
+            expectedLineContent: "TDD rocks"
+        }
+    ])(
+        "should find a line containing the query in a multi-line string and return its line number and content",
+        async ({ content, expectedLineNumber, expectedLineContent }) => {
+            // Arrange
+            const query = "TDD"
 
-        // Act
-        const result = await querySearch(query, content)
+            // Act
+            const result = await querySearcher.search(query, content)
 
-        // Assert
-        expect(result).toStrictEqual([
-            QuerySearcherMatch.create(2, "TDD rocks")
-        ])
-    })
+            // Assert
+            expect(result).toStrictEqual([
+                QuerySearcherMatch.create(
+                    expectedLineNumber,
+                    expectedLineContent
+                )
+            ])
+        }
+    )
 
     it("should return multiple lines when matched with multiple", async () => {
         // Arrange
@@ -84,7 +84,7 @@ describe("QuerySearcher", () => {
             "Life is great\nTDD rocks\nClean code is mandatory\nIn TDD we always start writing with a failing test"
 
         // Act
-        const result = await querySearch(query, content)
+        const result = await querySearcher.search(query, content)
 
         // Assert
         expect(result).toStrictEqual([
@@ -94,69 +94,6 @@ describe("QuerySearcher", () => {
                 "In TDD we always start writing with a failing test"
             )
         ])
-    })
-
-    it("should read a file using the injected fileReader", async () => {
-        // Arrange
-        const query = "mandatory"
-        const filePath = "/location"
-        const content =
-            "Life is great\nTDD rocks\nClean code is mandatory\nIn TDD we always start writing with a failing test"
-        const fileReaderMock = fileReaderMockFactory(content)
-        const querySearcher = new QuerySearcher(fileReaderMock)
-
-        // Act
-        const result = await querySearcher.search(query, filePath)
-
-        // Assert
-        expect(result).toStrictEqual([
-            QuerySearcherMatch.create(3, "Clean code is mandatory")
-        ])
-
-        const fileReaderMockReadMethodSpy = jest.spyOn(
-            fileReaderMock,
-            "readToString"
-        )
-
-        expect(fileReaderMockReadMethodSpy).toHaveBeenCalledWith("/location")
-        expect(fileReaderMockReadMethodSpy).toHaveBeenCalledTimes(1)
-        await expect(fileReaderMock.readToString(filePath)).resolves.toBe(
-            content
-        )
-    })
-
-    it("should throw a FileNotFoundError when file is not found", async () => {
-        // Arrange
-        const query = "something"
-        const filePath = "/invalid/path"
-        const fileReaderMock = {
-            readToString: jest
-                .fn()
-                .mockRejectedValue(new FileNotFoundError("File not found"))
-        }
-        const querySearcher = new QuerySearcher(fileReaderMock)
-
-        // Act & Assert
-        await expect(querySearcher.search(query, filePath)).rejects.toThrow(
-            FileNotFoundError
-        )
-    })
-
-    it("should throw a GenericFileError when a general error occurs", async () => {
-        // Arrange
-        const query = "something"
-        const filePath = "/invalid/path"
-        const fileReaderMock = {
-            readToString: jest
-                .fn()
-                .mockRejectedValue(new GenericFileError("Some error"))
-        }
-        const querySearcher = new QuerySearcher(fileReaderMock)
-
-        // Act & Assert
-        await expect(querySearcher.search(query, filePath)).rejects.toThrow(
-            GenericFileError
-        )
     })
 })
 

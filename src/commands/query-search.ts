@@ -1,15 +1,13 @@
 import { ArgumentsCamelCase, Argv } from "yargs"
-import { promises as fsPromises } from "fs"
 import { logger } from "../logger"
 import {
     QuerySearcher,
     QuerySearcherMatchTuple
 } from "../service/query-searcher"
-import { FileReader } from "../service/file-reader"
 
 export interface QuerySearchArgv {
     query?: string
-    filePath?: string
+    content?: string
 }
 
 export const command = "query-search"
@@ -26,26 +24,26 @@ export function builder(yargs: Argv<QuerySearchArgv>): Argv<QuerySearchArgv> {
             alias: "q",
             describe: "Query to search in the file."
         })
-        .option("filePath", {
+        .option("content", {
             type: "string",
             alias: "f",
-            describe: "Path to the file."
+            describe: "Content to search in."
         })
 }
 
 export async function handler(argv: ArgumentsCamelCase<QuerySearchArgv>) {
     try {
-        const { query, filePath } = argv
+        const { query, content } = argv
 
-        if (!query || !filePath) {
-            logger.error("Both query and filePath are required.")
+        if (!query || !content) {
+            logger.error("Both query and content are required.")
 
             return
         }
 
-        const querySearcher = new QuerySearcher(new FileReader(fsPromises))
+        const querySearcher = new QuerySearcher()
 
-        const result = await querySearcher.search(query, filePath)
+        const result = await querySearcher.search(query, content)
 
         if (isNoMatch(result)) {
             logger.log("No matches")

@@ -12,13 +12,14 @@ jest.mock("../logger", () => ({
 
 describe("QuerySearch CLI", () => {
     let loggerSpy: jest.SpyInstance
-    let errorLoggerSpy: jest.SpyInstance
+
+    const textContent =
+        "Happy life: love, laughter, and simple moments.\nHappiness is found in the little things.\nA happy life is one filled with smiles.\nSavor the simple joys for a joyful life.\nIn simplicity, we discover true happiness."
 
     beforeEach(() => {
         jest.clearAllMocks()
 
         loggerSpy = jest.spyOn(logger, "log")
-        errorLoggerSpy = jest.spyOn(logger, "error")
     })
 
     afterEach(() => {
@@ -28,7 +29,7 @@ describe("QuerySearch CLI", () => {
     it("should print single line when matched with single", async () => {
         await handler({
             query: "joyful life",
-            filePath: "./src/test-data/happiness.txt"
+            content: textContent
         } as ArgumentsCamelCase<QuerySearchArgv>)
 
         expect(loggerSpy).toHaveBeenCalledWith(
@@ -41,7 +42,7 @@ describe("QuerySearch CLI", () => {
     it("should print multiple lines when matched with multiple", async () => {
         await handler({
             query: "happiness",
-            filePath: "./src/test-data/happiness.txt"
+            content: textContent
         } as ArgumentsCamelCase<QuerySearchArgv>)
 
         expect(loggerSpy).toHaveBeenCalledWith(
@@ -54,42 +55,11 @@ describe("QuerySearch CLI", () => {
     it("should print no matches when matched with none", async () => {
         await handler({
             query: "pizza",
-            filePath: "./src/test-data/happiness.txt"
+            content: textContent
         } as ArgumentsCamelCase<QuerySearchArgv>)
 
         expect(loggerSpy).toHaveBeenCalledWith(
             expect.stringContaining("No matches")
-        )
-    })
-
-    it("should fail when no file path is specified", async () => {
-        await handler({
-            query: "happiness"
-        } as ArgumentsCamelCase<QuerySearchArgv>)
-
-        expect(errorLoggerSpy).toHaveBeenCalledWith(
-            "Both query and filePath are required."
-        )
-    })
-
-    it("should fail when no args specified at all", async () => {
-        await handler({
-            query: "happiness"
-        } as ArgumentsCamelCase<QuerySearchArgv>)
-
-        expect(errorLoggerSpy).toHaveBeenCalledWith(
-            "Both query and filePath are required."
-        )
-    })
-
-    it("should log an error when file doesn't exist", async () => {
-        await handler({
-            query: "joyful life",
-            filePath: "./src/test-data/non-existing-file.txt"
-        } as ArgumentsCamelCase<QuerySearchArgv>)
-
-        expect(errorLoggerSpy).toHaveBeenCalledWith(
-            expect.stringContaining("Error reading file")
         )
     })
 })

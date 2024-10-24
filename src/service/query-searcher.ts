@@ -1,5 +1,3 @@
-import { IFileReader } from "./file-reader"
-
 export type QuerySearcherMatchTuple = [number, string]
 
 export class QuerySearcherMatch {
@@ -12,23 +10,16 @@ export class QuerySearcherMatch {
 }
 
 export class QuerySearcher {
-    private fileReader: IFileReader
-
-    constructor(fileReader: IFileReader) {
-        this.fileReader = fileReader
-    }
-
     /**
      *
      * @param query The query to search for.
-     * @param filePath The path to the file to search in. Query Searcher will attempt to resolve the path and supply the content to the search function.
+     * @param content The content to search in.
      * @returns An array of tuples containing the line number and the line content.
      */
     public async search(
         query: string,
-        filePath: string
+        content: string
     ): Promise<QuerySearcherMatchTuple[]> {
-        const content = await this.fileReader.readToString(filePath)
         const lowerCaseQuery = query.toLowerCase()
 
         const result = content
