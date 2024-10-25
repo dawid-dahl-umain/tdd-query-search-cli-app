@@ -7,9 +7,7 @@ const fileReaderMockFactory = (lines: string = ""): IFileReader => ({
 })
 
 const querySearchUnconfig =
-    (
-        fileReaderMockFactory: (content?: string, lines?: string) => IFileReader
-    ) =>
+    (fileReaderMockFactory: (lines?: string) => IFileReader) =>
     async (query: string, content: string) => {
         const fileReaderMock = fileReaderMockFactory(content)
 
